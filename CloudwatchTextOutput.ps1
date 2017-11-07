@@ -1,5 +1,3 @@
-#author : lihtian@gmail.com
-
 $accessKeyInput = Read-Host -Prompt "Paste AWS access key here. Leave blank to use the previous one"
 $secretKeyInput = Read-Host -Prompt "Paste AWS secret access key here. Leave blank to use the previous one"
     
@@ -34,7 +32,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
 # Write header in output file
 
 
-    $OutputFile.Write( "Security Group" )
+    $OutputFile.Write( "Resource" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "Event ID" )
     $OutputFile.Write("`t")
@@ -46,7 +44,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
     $OutputFile.Write("`t")
     $OutputFile.Write( "Resource type" )
     $OutputFile.Write("`t")
-    $OutputFile.Write( "Resource name" )
+    $OutputFile.Write( "Resources name" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "AWS access key" )
     $OutputFile.Write("`t")
@@ -63,11 +61,11 @@ do
 {   
     Find-CTEvent -NextToken $nextToken | %{
     
-
+    #Get cloudtrail event only. Split it into multiple strings
     $FCTeach = $_
     $FCTEvent = $FCTeach.CloudTrailEvent.Replace("`",`"","$").Split("$").Replace("{`"","").Replace("`"}","")
 
-
+    #Very important to check if the string is null or not. Else the tostring() will return error is value is null
     $CTSourceIPAddressRaw = $FCTEvent | Select-String -Pattern "sourceIPAddress" -CaseSensitive
     If(![String]::IsNullOrEmpty($CTSourceIPAddressRaw)) 
     {
@@ -85,25 +83,30 @@ do
 
 
     $CTEventID = $FCTeach.EventId
-    $CTEventTime = $FCTeach.EventTime.AddHours(8).DateTime  #This is to make it UTC timezone
+    $CTEventTime = $FCTeach.EventTime.AddHours(8).DateTime  #This is to make it UTC timezone to align with what we see the cloudtrail report from AWS console
     $CTUserName = $FCTeach.Username
     $CTEventName = $FCTeach.EventName
     
 
     #filter the resource name
-    $ResourceName = ""
-    $FCTeach.Resources | select ResourceName | %{$ResourceName = "$ResourceName"+$_+"," }
-    $CTResourceName = $ResourceName.Replace("@{","").Replace("ResourceName=","").Replace("`}","")
+    $ResourceName = $FCTeach.Resources | %{$_.ResourceName}
+    $CTResourceName = ""
+    $ResourceName | %{$CTResourceName = "$CTResourceName"+$_+" , " } #Fit multiple values into a single cell with comma. e.g. : sg-175dee71,sg-047ecd62,
 
     #filter the resource type
-    $ResourceType = $FCTeach.Resources | select ResourceType
+    #$ResourceType = $FCTeach.Resources | select ResourceType
 
-    If(![String]::IsNullOrEmpty($ResourceType)) 
-    {
-    $CTResourceType = $ResourceType[0].ResourceType.Remove(0,5).Replace("::"," ")
-    }
+
+    $AllResourceArray = $FCTeach.Resources
+    #Write-host $ResourceNameCount
     
-    $OutputFile.Write( "$CTSecurityGroup" )
+    ForEach ($AllResource in $AllResourceArray){
+
+    $AllResourceName = $AllResource | %{$_.ResourceName}
+    $AllResourceType = $AllResource | %{$_.ResourceType}
+    $AllResourceType = $AllResourceType.Remove(0,5).Replace("::"," ")  #Fix this pattern "AWS::xxx::xxxxx" to "xxx xxxxx"
+
+    $OutputFile.Write( "$AllResourceName" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "$CTEventID" )
     $OutputFile.Write("`t")
@@ -113,7 +116,7 @@ do
     $OutputFile.Write("`t")
     $OutputFile.Write( "$CTEventName" )
     $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTResourceType" )
+    $OutputFile.Write( "$AllResourceType" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "$CTResourceName" )
     $OutputFile.Write("`t")
@@ -126,9 +129,13 @@ do
     $OutputFile.Write( "$FCTEvent" )
     $OutputFile.Write("`t")
     $OutputFile.Write("`n")
+
+    }
      
-      <#
-write-host $CTSecurityGroup
+
+     <#
+      ForEach ($AllResourceName in $AllResourceNames){
+write-host $AllResourceName
 write-host $CTEventID
 write-host $CTEventTime
 write-host $CTUserName
@@ -139,7 +146,8 @@ write-host $CTAWSAccessKey
 write-host $CTAWSRegion
 write-host $CTSourceIPAddress
 write-host $FCTEvent
-#>
+}#>
+
     }
 
 $nextToken = $AWSHistory.LastServiceResponse.NextToken
