@@ -34,7 +34,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
 
 # Write header in output file
 $RDSItems = @(
-                "Region"
+                "Region",
                 "AllocatedStorage",
                 "DBSnapShotArn",
                 "AvailabilityZone",
