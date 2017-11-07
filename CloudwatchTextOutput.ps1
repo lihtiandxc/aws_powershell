@@ -15,7 +15,7 @@ If(![String]::IsNullOrEmpty($secretKeyInput))
 
 $CurrentFolder = Split-Path -Parent $PSCommandPath
 $RandomName = [DateTime]::Now.ToString().Replace(":", "_").Replace("/", "_").Replace(" ", "_")
-$OutputFilePath = "$CurrentFolder\Cloudtrail-$RandomName.csv"
+$OutputFilePath = "$CurrentFolder\Cloudtrail-$RandomName.txt"
 
 Import-Module AWSPowerShell
 Set-AWSCredential -AccessKey  $accessKey  -SecretKey $secretKey -StoreAs my_profile
