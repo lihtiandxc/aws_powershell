@@ -1,5 +1,5 @@
 #This script is capable to pull all the Cloudtrail event
-#If you wish to make this script to pull all the events, please remove the "If condition" which can be found in the script :
+#If you wish to make this script to display all the events, please remove the "If condition" which can be found in the script :
 # If($AllResourceName -like "sg-*"){}  
 #This version added the filter to have selected only Security group resources
 
@@ -38,7 +38,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
 # Write header in output file
 
 
-    $OutputFile.Write( "Security Group" )
+    $OutputFile.Write( "Resource" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "Event ID" )
     $OutputFile.Write("`t")
@@ -58,7 +58,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
     $OutputFile.Write("`t")
     $OutputFile.Write( "Source IP address" )
     $OutputFile.Write("`t")
-    $OutputFile.Write( "Resource" )
+    $OutputFile.Write( "Event" )
     $OutputFile.Write("`t")
     $OutputFile.Write("`n")
     
