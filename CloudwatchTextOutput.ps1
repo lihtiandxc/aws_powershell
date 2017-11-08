@@ -1,3 +1,9 @@
+#This script is capable to pull all the Cloudtrail event
+#If you wish to make this script to pull all the event, please remove this If condition which can be found in the script :
+# If($AllResourceName -like "sg-*"){}  
+#This version added the filter to have selected only Security group
+
+
 $accessKeyInput = Read-Host -Prompt "Paste AWS access key here. Leave blank to use the previous one"
 $secretKeyInput = Read-Host -Prompt "Paste AWS secret access key here. Leave blank to use the previous one"
     
@@ -18,8 +24,8 @@ $OutputFilePath = "$CurrentFolder\Cloudtrail-$RandomName.txt"
 Import-Module AWSPowerShell
 Set-AWSCredential -AccessKey  $accessKey  -SecretKey $secretKey -StoreAs my_profile
 Set-AWSCredential -ProfileName my_profile
-$region = "ap-southeast-1"
-#$region = "us-east-1"
+#$region = "ap-southeast-1"
+$region = "us-east-1"
 Set-DefaultAWSRegion -Region $region
 
 If(![System.IO.File]::Exists($OutputFilePath))
@@ -32,7 +38,7 @@ Write-host "Processing region $region" -ForegroundColor Magenta
 # Write header in output file
 
 
-    $OutputFile.Write( "Resource" )
+    $OutputFile.Write( "Security Group" )
     $OutputFile.Write("`t")
     $OutputFile.Write( "Event ID" )
     $OutputFile.Write("`t")
@@ -100,57 +106,49 @@ do
     $AllResourceArray = $FCTeach.Resources
     #Write-host $ResourceNameCount
     
-    ForEach ($AllResource in $AllResourceArray){
+    ForEach ($AllResource in $AllResourceArray)
+    {
 
     $AllResourceName = $AllResource | %{$_.ResourceName}
     $AllResourceType = $AllResource | %{$_.ResourceType}
-    $AllResourceType = $AllResourceType.Remove(0,5).Replace("::"," ")  #Fix this pattern "AWS::xxx::xxxxx" to "xxx xxxxx"
 
-    $OutputFile.Write( "$AllResourceName" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTEventID" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTEventTime" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTUserName" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTEventName" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$AllResourceType" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTResourceName" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTAWSAccessKey" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTAWSRegion" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$CTSourceIPAddress" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write( "$FCTEvent" )
-    $OutputFile.Write("`t")
-    $OutputFile.Write("`n")
+        If($AllResourceName -like "sg-*"){  #This is the filter to write output of security group only
 
-    }
+            If(![String]::IsNullOrEmpty($AllResourceType)) 
+            {
+                $AllResourceType = $AllResourceType.Remove(0,5).Replace("::"," ")  #Fix this pattern "AWS::xxx::xxxxx" to "xxx xxxxx"
+            }
+
+            $OutputFile.Write( "$AllResourceName" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTEventID" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTEventTime" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTUserName" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTEventName" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$AllResourceType" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTResourceName" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTAWSAccessKey" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTAWSRegion" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$CTSourceIPAddress" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write( "$FCTEvent" )
+            $OutputFile.Write("`t")
+            $OutputFile.Write("`n")
+
+            }
+        }#End If -like
      
-
-     <#
-      ForEach ($AllResourceName in $AllResourceNames){
-write-host $AllResourceName
-write-host $CTEventID
-write-host $CTEventTime
-write-host $CTUserName
-write-host $CTEventName
-write-host $CTResourceType
-write-host $CTResourceName
-write-host $CTAWSAccessKey
-write-host $CTAWSRegion
-write-host $CTSourceIPAddress
-write-host $FCTEvent
-}#>
-
     }
 
-$nextToken = $AWSHistory.LastServiceResponse.NextToken
+    $nextToken = $AWSHistory.LastServiceResponse.NextToken
 
 } while ($nextToken -ne $null) 
 
