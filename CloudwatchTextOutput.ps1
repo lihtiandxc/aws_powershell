@@ -1,7 +1,7 @@
 #This script is capable to pull all the Cloudtrail event
-#If you wish to make this script to pull all the event, please remove this If condition which can be found in the script :
+#If you wish to make this script to pull all the events, please remove the "If condition" which can be found in the script :
 # If($AllResourceName -like "sg-*"){}  
-#This version added the filter to have selected only Security group
+#This version added the filter to have selected only Security group resources
 
 
 $accessKeyInput = Read-Host -Prompt "Paste AWS access key here. Leave blank to use the previous one"
